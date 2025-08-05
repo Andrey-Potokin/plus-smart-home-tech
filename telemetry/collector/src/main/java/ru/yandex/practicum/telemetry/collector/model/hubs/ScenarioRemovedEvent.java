@@ -21,7 +21,7 @@ public class ScenarioRemovedEvent extends HubEvent {
 
     @Override
     public HubEventType getType() {
-        return HubEventType.DEVICE_ADDED;
+        return HubEventType.SCENARIO_REMOVED;
     }
 
     public ScenarioRemovedEventAvro toAvro() {

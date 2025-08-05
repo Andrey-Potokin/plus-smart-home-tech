@@ -33,7 +33,7 @@ public class ScenarioAddedEvent extends HubEvent {
 
     @Override
     public HubEventType getType() {
-        return HubEventType.DEVICE_ADDED;
+        return HubEventType.SCENARIO_ADDED;
     }
 
     public ScenarioAddedEventAvro toAvro() {
