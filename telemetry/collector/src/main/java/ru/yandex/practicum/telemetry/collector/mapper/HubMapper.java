@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.collector.mapper;
 
+import com.google.protobuf.Timestamp;
 import lombok.experimental.UtilityClass;
 import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.ConditionOperationProto;
@@ -19,8 +20,8 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioRemovedEventAvro;
-import ru.yandex.practicum.telemetry.collector.util.TimestampConverter;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -164,6 +165,10 @@ public class HubMapper {
 
     private static void setCommonFields(HubEventProto event, HubEventAvro avro) {
         avro.setHubId(event.getHubId());
-        avro.setTimestamp(TimestampConverter.convertTimestampToLong(event.getTimestamp()));
+
+        Timestamp protoTimestamp = event.getTimestamp();
+        Instant timestampInstant = Instant.ofEpochSecond(protoTimestamp.getSeconds(), protoTimestamp.getNanos());
+
+        avro.setTimestamp(timestampInstant);
     }
 }

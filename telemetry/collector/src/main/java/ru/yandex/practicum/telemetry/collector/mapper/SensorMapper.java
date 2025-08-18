@@ -1,5 +1,6 @@
 package ru.yandex.practicum.telemetry.collector.mapper;
 
+import com.google.protobuf.Timestamp;
 import lombok.experimental.UtilityClass;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro;
@@ -8,7 +9,8 @@ import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro;
 import ru.yandex.practicum.kafka.telemetry.event.TemperatureSensorAvro;
-import ru.yandex.practicum.telemetry.collector.util.TimestampConverter;
+
+import java.time.Instant;
 
 @UtilityClass
 public class SensorMapper {
@@ -83,6 +85,10 @@ public class SensorMapper {
     private static void setCommonFields(SensorEventProto event, SensorEventAvro avro) {
         avro.setId(event.getId());
         avro.setHubId(event.getHubId());
-        avro.setTimestamp(TimestampConverter.convertTimestampToLong(event.getTimestamp()));
+
+        Timestamp protoTimestamp = event.getTimestamp();
+        Instant timestampInstant = Instant.ofEpochSecond(protoTimestamp.getSeconds(), protoTimestamp.getNanos());
+
+        avro.setTimestamp(timestampInstant);
     }
 }

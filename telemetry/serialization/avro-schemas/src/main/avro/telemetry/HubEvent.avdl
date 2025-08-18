@@ -84,7 +84,7 @@ protocol HubEventProtocol {
 	record HubEventAvro {
 		string hub_id;
 		// идентификатор хаба
-		long timestamp;
+		timestamp_ms timestamp;
 		// метка времени события (timestamp_ms)
 		union{
 			DeviceAddedEventAvro,

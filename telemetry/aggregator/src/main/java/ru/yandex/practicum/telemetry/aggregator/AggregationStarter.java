@@ -51,7 +51,7 @@ public class AggregationStarter {
                         Optional<SensorsSnapshotAvro> optionalSnapshot = service.updateState(record.value());
 
                         optionalSnapshot.ifPresent(snapshot -> {
-                            log.info("Отправка сообщения с hubId: {}", snapshot.getHubId());
+                            log.info("Отправка для хаба={}, снимок={}, в топик={}", snapshot.getHubId(), snapshot, TELEMETRY_SNAPSHOT_KAFKA_TOPIC);
 
                             producer.send(new ProducerRecord<>(TELEMETRY_SNAPSHOT_KAFKA_TOPIC, snapshot),
                                     (metadata, exception) -> {

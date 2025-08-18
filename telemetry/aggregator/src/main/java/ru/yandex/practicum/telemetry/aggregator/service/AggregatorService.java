@@ -8,7 +8,6 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,92 +17,42 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AggregatorService {
 
-    private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
+    Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
-        log.info("Событие: {}", event);
-        Instant eventTimestamp = Instant.ofEpochMilli(event.getTimestamp());
-        log.info("Метка времени: {}", eventTimestamp);
+        log.info("Обновление состояния для события сенсора: {}", event);
 
+        SensorsSnapshotAvro snapshot = snapshots.computeIfAbsent(event.getHubId(), hubId -> {
+            log.info("Создание нового снимка для hubId: {}", hubId);
+            return SensorsSnapshotAvro.newBuilder()
+                    .setHubId(hubId)
+                    .setSensorsState(new HashMap<>())
+                    .setTimestamp(event.getTimestamp())
+                    .build();
+        });
 
-        Optional<SensorsSnapshotAvro> result = Optional.ofNullable(snapshots.compute(event.getHubId(), (hubId, snapshot) -> {
-            if (snapshot == null) {
-                log.info("Создание нового снимка для hubId: {} с событием: {}", event.getHubId(), event);
-                return createNewSnapshot(event, eventTimestamp);
-            } else {
-                log.info("Обновление существующего снимка для hubId: {} с событием: {}", event.getHubId(), event);
-                return updateExistingSnapshot(snapshot, event, eventTimestamp);
+        SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
+
+        if (oldState != null) {
+            log.info("Найдено существующее состояние для sensorId {}: {}", event.getId(), oldState);
+            if (oldState.getTimestamp().isAfter(event.getTimestamp()) ||
+                    oldState.getData().equals(event.getPayload())) {
+                log.info("Обновление не требуется для sensorId {}. Старое состояние более актуально или данные не изменились.", event.getId());
+                return Optional.empty();
             }
-        }));
-
-        if (result.isPresent()) {
-            log.info("Возвращаемый снимок для hubId {}: {}", event.getHubId(), result.get());
         } else {
-            log.info("Возвращается пустой результат для hubId {}", event.getHubId());
+            log.info("Существующее состояние не найдено для sensorId {}. Добавление нового состояния.", event.getId());
         }
 
-        return result;
-    }
-
-    private SensorsSnapshotAvro createNewSnapshot(SensorEventAvro event, Instant eventTimestamp) {
-        log.info("В метод создания поступили событие {} и метка времени {}", event, eventTimestamp);
-
-        SensorStateAvro sensorState = createSensorState(event, eventTimestamp);
-        Map<String, SensorStateAvro> sensorsStates = new HashMap<>();
-        sensorsStates.put(event.getId(), sensorState);
-
-        log.info("Создан новый снимок состояния сенсоров: {}", sensorsStates);
-
-        SensorsSnapshotAvro snapshot = SensorsSnapshotAvro.newBuilder()
-                .setHubId(event.getHubId())
-                .setTimestamp(eventTimestamp)
-                .setSensorsState(sensorsStates)
-                .build();
-
-        log.info("Возвращаемый снимок: {}", snapshot);
-
-        return snapshot;
-    }
-
-    private SensorsSnapshotAvro updateExistingSnapshot(SensorsSnapshotAvro snapshot, SensorEventAvro event,
-                                                       Instant eventTimestamp) {
-        log.info("В метод обновления поступил снимок {}, событие {} и метка времени {}", snapshot, event, eventTimestamp);
-        Map<String, SensorStateAvro> sensorsStates = snapshot.getSensorsState();
-        log.info("Из мапы получен набор событий {}", sensorsStates);
-
-        if (sensorsStates.containsKey(event.getId())) {
-            SensorStateAvro oldState = sensorsStates.get(event.getId());
-            log.info("oldState присвоено значение = {}", oldState);
-
-            if (oldState.getTimestamp().isAfter(eventTimestamp) || oldState.getData().equals(event.getPayload())) {
-                log.warn("Игнорирование события для hubId: {} и id сенсора: {} - устаревшее состояние или одинаковые данные",
-                        event.getHubId(), event.getId());
-                return null;
-            }
-        }
-
-        SensorStateAvro newSensorState = createSensorState(event, eventTimestamp);
-        sensorsStates.put(event.getId(), newSensorState);
-
-        log.info("Обновлен снимок для hubId: {}: {}", event.getHubId(), sensorsStates);
-
-        return SensorsSnapshotAvro.newBuilder()
-                .setHubId(event.getHubId())
-                .setTimestamp(eventTimestamp)
-                .setSensorsState(sensorsStates)
-                .build();
-    }
-
-    private SensorStateAvro createSensorState(SensorEventAvro event, Instant eventTimestamp) {
-        log.info("Создание состояния сенсора для события: {}, с меткой времени: {}", event, eventTimestamp);
-
-        SensorStateAvro sensorState = SensorStateAvro.newBuilder()
-                .setTimestamp(eventTimestamp)
+        SensorStateAvro newSensorState = SensorStateAvro.newBuilder()
+                .setTimestamp(event.getTimestamp())
                 .setData(event.getPayload())
                 .build();
 
-        log.info("Созданное состояние сенсора: {}", sensorState);
+        snapshot.getSensorsState().put(event.getId(), newSensorState);
+        snapshot.setTimestamp(event.getTimestamp());
 
-        return sensorState;
+        log.info("Обновлено состояние для sensorId {}: {}", event.getId(), newSensorState);
+        return Optional.of(snapshot);
     }
 }
