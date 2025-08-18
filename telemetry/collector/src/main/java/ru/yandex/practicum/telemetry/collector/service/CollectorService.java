@@ -18,13 +18,13 @@ import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
 import ru.yandex.practicum.telemetry.collector.mapper.HubMapper;
 import ru.yandex.practicum.telemetry.collector.mapper.SensorMapper;
 
-@GrpcService
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
 @Slf4j
+@GrpcService
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CollectorService extends CollectorControllerGrpc.CollectorControllerImplBase {
 
-    KafkaTemplate<Void, SpecificRecordBase> kafkaTemplate;
+    KafkaTemplate<Void, SpecificRecordBase> producer;
 
     private static final String TELEMETRY_SENSORS_KAFKA_TOPIC = "telemetry.sensors.v1";
     private static final String TELEMETRY_HUBS_KAFKA_TOPIC = "telemetry.hubs.v1";
@@ -35,7 +35,7 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
             log.info("Отправка события {} с id={} в Kafka", sensorEvent,
                     sensorEvent.getId());
 
-            kafkaTemplate.send(TELEMETRY_SENSORS_KAFKA_TOPIC, SensorMapper.toAvro(sensorEvent))
+            producer.send(TELEMETRY_SENSORS_KAFKA_TOPIC, SensorMapper.toAvro(sensorEvent))
                     .whenComplete((result, exception) ->
                             handleSendResult(result, exception, sensorEvent));
 
@@ -55,7 +55,7 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
         try {
             log.info("Отправка события {} в Kafka", hubEvent);
 
-            kafkaTemplate.send(TELEMETRY_HUBS_KAFKA_TOPIC, HubMapper.toAvro(hubEvent))
+            producer.send(TELEMETRY_HUBS_KAFKA_TOPIC, HubMapper.toAvro(hubEvent))
                     .whenComplete((result, exception) ->
                             handleSendResult(result, exception, hubEvent));
 
