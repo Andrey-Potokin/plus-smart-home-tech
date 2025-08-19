@@ -2,13 +2,31 @@ package ru.yandex.practicum.telemetry.analyzer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.ConfigurableApplicationContext;
+import ru.yandex.practicum.telemetry.analyzer.processor.HubEventProcessor;
+import ru.yandex.practicum.telemetry.analyzer.processor.SnapshotProcessor;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class AnalyzerApp {
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(AnalyzerApp.class, args);
-        AnalyzerStarter aggregator = context.getBean(AnalyzerStarter.class);
-        aggregator.run();
+        ConfigurableApplicationContext context =
+                SpringApplication.run(AnalyzerApp.class, args);
+
+        final HubEventProcessor hubEventProcessor =
+                context.getBean(HubEventProcessor.class);
+        SnapshotProcessor snapshotProcessor =
+                context.getBean(SnapshotProcessor.class);
+
+        // запускаем в отдельном потоке обработчик событий
+        // от пользовательских хабов
+        Thread hubEventsThread = new Thread(hubEventProcessor);
+        hubEventsThread.setName("HubEventHandlerThread");
+        hubEventsThread.start();
+
+        // В текущем потоке начинаем обработку
+        // снимков состояния датчиков
+        snapshotProcessor.start();
     }
 }

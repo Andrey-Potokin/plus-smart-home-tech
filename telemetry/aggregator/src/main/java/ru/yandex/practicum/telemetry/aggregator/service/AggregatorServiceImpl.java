@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.aggregator;
+package ru.yandex.practicum.telemetry.aggregator.service;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -15,10 +15,11 @@ import java.util.Optional;
 @Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AggregatorService {
+public class AggregatorServiceImpl implements AggregatorService {
 
     Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
+    @Override
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
         log.info("Обновление состояния для события сенсора: {}", event);
 
