@@ -25,15 +25,15 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AggregationStarter {
 
-    AggregatorClient aggregatorClient;
+    AggregatorClient client;
     AggregatorServiceImpl service;
 
     private static final String TELEMETRY_SENSORS_KAFKA_TOPIC = "telemetry.sensors.v1";
     private static final String TELEMETRY_SNAPSHOT_KAFKA_TOPIC = "telemetry.snapshots.v1";
 
     public void start() {
-        Consumer<Void, SensorEventAvro> consumer = aggregatorClient.getConsumer();
-        Producer<Void, SensorsSnapshotAvro> producer = aggregatorClient.getProducer();
+        Consumer<Void, SensorEventAvro> consumer = client.getConsumer();
+        Producer<Void, SensorsSnapshotAvro> producer = client.getProducer();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             consumer.wakeup();
@@ -74,7 +74,7 @@ public class AggregationStarter {
         } catch (Exception e) {
             log.error("Ошибка в AggregationStarter: {}", e.getMessage());
         } finally {
-            aggregatorClient.stop();
+            client.stop();
         }
     }
 }
