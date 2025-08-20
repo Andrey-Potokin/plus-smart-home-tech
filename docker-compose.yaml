@@ -36,13 +36,16 @@ services:
 
   db:
     image: postgres:16.1
-    container_name: postgres
+    container_name: postgres-analyzer
+    environment:
+      POSTGRES_USER: analyzer
+      POSTGRES_PASSWORD: analyzer
+      POSTGRES_DB: analyzer
     ports:
       - "6541:5432"
-    environment:
-      - POSTGRES_DB=smart-home-tech
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=12345
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
