@@ -40,6 +40,7 @@ public class SnapshotProcessor {
                 records.forEach(record -> {
                     try {
                         // TODO дописать
+                        service.check(record.value());
                     } catch (Exception e) {
                         log.error("Ошибка при обработке записи: {}", e.getMessage());
                     }
