@@ -1,34 +1,30 @@
 package ru.yandex.practicum.telemetry.analyzer.model;
 
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "conditions")
+@Builder
+@Table(name = "scenario_actions")
 @Getter
 @Setter
-@Builder
+@EqualsAndHashCode
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Condition {
+public class ScenarioAction {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
-
-    String type;
-
-    String operation;
-
-    Integer value;
+    @EmbeddedId
+    private ScenarioActionId id;
 }

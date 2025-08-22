@@ -2,8 +2,6 @@ package ru.yandex.practicum.telemetry.analyzer.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -23,9 +21,10 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Sensor {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    @Id
+    @Column(name = "id", nullable = false)
+    String id;
 
-    @Column(name = "hub_id")
+    @Column(name = "hub_id", nullable = false)
     String hubId;
 }

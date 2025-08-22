@@ -49,7 +49,7 @@ public class HubMapper {
                 break;
 
             default:
-                throw new IllegalArgumentException("Неизвестный тип события: " + event);
+                throw new IllegalArgumentException("Неизвестный тип события: " + event.getPayloadCase());
         }
 
         return avro;

@@ -40,7 +40,7 @@ public class HubEventProcessor implements Runnable {
 
                 records.forEach(record -> {
                     try {
-                        // TODO дописать
+                        service.handleHubEvent(record.value());
                     } catch (Exception e) {
                         log.error("Ошибка при обработке записи: {}", e.getMessage());
                     }
@@ -54,6 +54,4 @@ public class HubEventProcessor implements Runnable {
             client.stop();
         }
     }
-
-    // ...детали реализации...
 }
