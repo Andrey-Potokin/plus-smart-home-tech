@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.analyzer.model;
+package ru.yandex.practicum.telemetry.analyzer.model.scenario;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -15,12 +15,16 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Builder
-@Table(name = "scenario_conditions")
-@Getter @Setter @EqualsAndHashCode @ToString
-@NoArgsConstructor @AllArgsConstructor
+@Table(name = "scenario_actions")
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ScenarioCondition {
+public class ScenarioAction {
 
     @EmbeddedId
-    ScenarioConditionId id;
+    private ScenarioActionId id;
 }

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.analyzer.model;
+package ru.yandex.practicum.telemetry.analyzer.model.scenario;
 
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotBlank;
@@ -17,14 +17,10 @@ import java.io.Serializable;
 
 @Embeddable
 @Builder
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @EqualsAndHashCode @ToString
+@NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ScenarioActionId implements Serializable {
+public class ScenarioConditionId implements Serializable {
 
     @NotNull
     Long scenarioId;
@@ -33,5 +29,5 @@ public class ScenarioActionId implements Serializable {
     String sensorId;
 
     @NotNull
-    Long actionId;
+    Long conditionId;
 }

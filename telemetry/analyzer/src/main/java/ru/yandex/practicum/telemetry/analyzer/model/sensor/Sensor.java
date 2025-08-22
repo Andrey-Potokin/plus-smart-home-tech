@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.analyzer.model;
+package ru.yandex.practicum.telemetry.analyzer.model.sensor;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

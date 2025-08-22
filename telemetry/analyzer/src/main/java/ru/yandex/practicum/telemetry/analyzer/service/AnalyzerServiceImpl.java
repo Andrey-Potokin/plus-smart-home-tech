@@ -6,24 +6,22 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceRemovedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
-import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioRemovedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.telemetry.analyzer.model.Action;
-import ru.yandex.practicum.telemetry.analyzer.model.Condition;
-import ru.yandex.practicum.telemetry.analyzer.model.Scenario;
-import ru.yandex.practicum.telemetry.analyzer.model.Sensor;
+import ru.yandex.practicum.telemetry.analyzer.mapper.ActionMapper;
+import ru.yandex.practicum.telemetry.analyzer.mapper.ConditionMapper;
+import ru.yandex.practicum.telemetry.analyzer.mapper.ScenarioMapper;
+import ru.yandex.practicum.telemetry.analyzer.mapper.SensorMapper;
 import ru.yandex.practicum.telemetry.analyzer.repository.ActionRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.ConditionRepository;
+import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioActionRepository;
+import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioConditionRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.SensorRepository;
-
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -33,6 +31,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
     ActionRepository actionRepository;
     ConditionRepository conditionRepository;
+    ScenarioConditionRepository scenarioConditionRepository;
+    ScenarioActionRepository scenarioActionRepository;
     ScenarioRepository scenarioRepository;
     SensorRepository sensorRepository;
 
@@ -57,11 +57,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
     private void handleDeviceAdded(String hubId, String id) {
         log.info("Добавление нового устройства с id={}, к хабу: {}", id, hubId);
-        Sensor sensor = Sensor.builder()
-                .id(id)
-                .hubId(hubId)
-                .build();
-        sensorRepository.save(sensor);
+
+        sensorRepository.save(SensorMapper.toSensor(hubId, id));
     }
 
     private void handleDeviceRemoved(String hubId, String id) {
@@ -71,15 +68,12 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
     private void handleScenarioAdded(String hubId, ScenarioAddedEventAvro scenarioAdded) {
         log.info("Добавление нового сценария: {}", scenarioAdded.getName());
-        Scenario scenario = Scenario.builder()
-                .hubId(hubId)
-                .name(scenarioAdded.getName())
-                .build();
-        scenarioRepository.save(scenario);
+
+        scenarioRepository.save(ScenarioMapper.toScenario(hubId, scenarioAdded));
 
         scenarioAdded.getConditions().forEach(conditionAvro -> {
             try {
-                conditionRepository.save(createCondition(conditionAvro));
+                conditionRepository.save(ConditionMapper.toCondition(conditionAvro));
             } catch (Exception e) {
                 log.error("Ошибка при сохранении условия: {}", e.getMessage());
             }
@@ -87,34 +81,11 @@ public class AnalyzerServiceImpl implements AnalyzerService {
 
         scenarioAdded.getActions().forEach(actionAvro -> {
             try {
-                actionRepository.save(createAction(actionAvro));
+                actionRepository.save(ActionMapper.toAction(actionAvro));
             } catch (Exception e) {
                 log.error("Ошибка при сохранении действия: {}", e.getMessage());
             }
         });
-    }
-
-    private Condition createCondition(ScenarioConditionAvro conditionAvro) {
-        Condition.ConditionBuilder condition = Condition.builder()
-                .type(conditionAvro.getType().toString())
-                .operation(conditionAvro.getOperation().toString());
-
-        Optional.ofNullable(conditionAvro.getValue()).ifPresent(value -> {
-            if (value instanceof Integer) {
-                condition.value((Integer) value);
-            } else if (value instanceof Boolean) {
-                condition.value((Boolean) value ? 1 : 0);
-            }
-        });
-
-        return condition.build();
-    }
-
-    private Action createAction(DeviceActionAvro actionAvro) {
-        return Action.builder()
-                .type(actionAvro.getType().toString())
-                .value(actionAvro.getValue())
-                .build();
     }
 
     private void handleScenarioRemoved(String name) {
