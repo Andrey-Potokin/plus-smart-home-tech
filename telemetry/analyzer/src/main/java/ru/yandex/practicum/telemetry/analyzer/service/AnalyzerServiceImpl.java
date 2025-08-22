@@ -16,6 +16,10 @@ import ru.yandex.practicum.telemetry.analyzer.mapper.ActionMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.ConditionMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.ScenarioMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.SensorMapper;
+import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioAction;
+import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioActionId;
+import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioCondition;
+import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioConditionId;
 import ru.yandex.practicum.telemetry.analyzer.repository.ActionRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.ConditionRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioActionRepository;
@@ -69,23 +73,48 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     private void handleScenarioAdded(String hubId, ScenarioAddedEventAvro scenarioAdded) {
         log.info("Добавление нового сценария: {}", scenarioAdded.getName());
 
-        scenarioRepository.save(ScenarioMapper.toScenario(hubId, scenarioAdded));
+        long scenarioId = scenarioRepository.save(ScenarioMapper.toScenario(hubId, scenarioAdded)).getId();
 
         scenarioAdded.getConditions().forEach(conditionAvro -> {
+            String sensorId = conditionAvro.getSensorId();
             try {
-                conditionRepository.save(ConditionMapper.toCondition(conditionAvro));
+                long conditionId = conditionRepository.save(ConditionMapper.toCondition(conditionAvro)).getId();
+                ScenarioConditionId scenarioConditionId = createScenarioConditionId(scenarioId, sensorId, conditionId);
+                ScenarioCondition scenarioCondition = new ScenarioCondition(scenarioConditionId);
+                scenarioConditionRepository.save(scenarioCondition);
             } catch (Exception e) {
                 log.error("Ошибка при сохранении условия: {}", e.getMessage());
             }
         });
 
+
         scenarioAdded.getActions().forEach(actionAvro -> {
+            String sensorId = actionAvro.getSensorId();
             try {
-                actionRepository.save(ActionMapper.toAction(actionAvro));
+                long actionId = actionRepository.save(ActionMapper.toAction(actionAvro)).getId();
+                ScenarioActionId scenarioActionId = createScenarioActionId(scenarioId, sensorId, actionId);
+                ScenarioAction scenarioAction = new ScenarioAction(scenarioActionId);
+                scenarioActionRepository.save(scenarioAction);
             } catch (Exception e) {
                 log.error("Ошибка при сохранении действия: {}", e.getMessage());
             }
         });
+    }
+
+    private ScenarioConditionId createScenarioConditionId(long scenarioId, String sensorId, long conditionId) {
+        return ScenarioConditionId.builder()
+                .scenarioId(scenarioId)
+                .sensorId(sensorId)
+                .conditionId(conditionId)
+                .build();
+    }
+
+    private ScenarioActionId createScenarioActionId(long scenarioId, String sensorId, long actionId) {
+        return ScenarioActionId.builder()
+                .scenarioId(scenarioId)
+                .sensorId(sensorId)
+                .actionId(actionId)
+                .build();
     }
 
     private void handleScenarioRemoved(String name) {
