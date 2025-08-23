@@ -22,7 +22,9 @@ import ru.yandex.practicum.telemetry.analyzer.model.sensor.Sensor;
 @Entity
 @Table(name = "scenario_actions")
 @Getter @Setter @EqualsAndHashCode @ToString
-@NoArgsConstructor @AllArgsConstructor @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScenarioAction {
 

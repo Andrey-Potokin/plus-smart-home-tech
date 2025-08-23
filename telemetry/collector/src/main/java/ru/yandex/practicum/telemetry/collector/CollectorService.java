@@ -34,7 +34,7 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
     @Override
     public void collectSensorEvent(SensorEventProto sensorEvent, StreamObserver<Empty> responseObserver) {
         try {
-            log.info("В Collector от Hub_router поступило сообщение от датчика: {}", sensorEvent);
+            log.info("В Collector от Hub-router поступило сообщение от датчика: {}", sensorEvent);
 
             SensorEventAvro avro = SensorMapper.toAvro(sensorEvent);
             producer.send(TELEMETRY_SENSORS_KAFKA_TOPIC, avro)
