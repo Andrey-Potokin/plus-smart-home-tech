@@ -16,13 +16,8 @@ import lombok.experimental.FieldDefaults;
 import java.io.Serializable;
 
 @Embeddable
-@Builder
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @EqualsAndHashCode @ToString
+@NoArgsConstructor @AllArgsConstructor @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ScenarioActionId implements Serializable {
 

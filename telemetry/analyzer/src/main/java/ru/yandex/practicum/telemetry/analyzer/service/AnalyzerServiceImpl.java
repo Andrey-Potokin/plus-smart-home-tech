@@ -6,16 +6,19 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceRemovedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioRemovedEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.telemetry.analyzer.mapper.ActionMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.ConditionMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.ScenarioMapper;
 import ru.yandex.practicum.telemetry.analyzer.mapper.SensorMapper;
+import ru.yandex.practicum.telemetry.analyzer.model.scenario.Scenario;
 import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioAction;
 import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioActionId;
 import ru.yandex.practicum.telemetry.analyzer.model.scenario.ScenarioCondition;
@@ -26,6 +29,9 @@ import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioActionRepositor
 import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioConditionRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.ScenarioRepository;
 import ru.yandex.practicum.telemetry.analyzer.repository.SensorRepository;
+
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -41,12 +47,20 @@ public class AnalyzerServiceImpl implements AnalyzerService {
     SensorRepository sensorRepository;
 
     @Override
-    public void handleSnapshot(SensorsSnapshotAvro event) {
-        // TODO дописать
+    public void handleSnapshot(SensorsSnapshotAvro snapshotAvro) {
+        log.info("Начало обработки Снапшота: {}.", snapshotAvro);
+        String hubId = snapshotAvro.getHubId();
+        // набор состояний датчиков
+        Map<String, SensorStateAvro> sensorStateAvro = snapshotAvro.getSensorsState();
+        // сценарии хаба
+        List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
+        for (Scenario scenario : scenarios) {
+        }
     }
 
     @Override
     public void handleHubEvent(HubEventAvro event) {
+        log.info("Начало обработки события {}.", event);
         String hubId = event.getHubId();
         SpecificRecordBase payload = (SpecificRecordBase) event.getPayload();
 
@@ -54,22 +68,26 @@ public class AnalyzerServiceImpl implements AnalyzerService {
             case DeviceAddedEventAvro deviceAdded -> handleDeviceAdded(hubId, deviceAdded.getId());
             case DeviceRemovedEventAvro deviceRemoved -> handleDeviceRemoved(hubId, deviceRemoved.getId());
             case ScenarioAddedEventAvro scenarioAdded -> handleScenarioAdded(hubId, scenarioAdded);
-            case ScenarioRemovedEventAvro scenarioRemoved -> handleScenarioRemoved(scenarioRemoved.getName());
+            case ScenarioRemovedEventAvro scenarioRemoved -> handleScenarioRemoved(hubId, scenarioRemoved.getName());
             case null, default -> throw new IllegalArgumentException("Неизвестный тип события: " + payload);
         }
     }
 
+    @Transactional
     private void handleDeviceAdded(String hubId, String id) {
-        log.info("Добавление нового устройства с id={}, к хабу: {}", id, hubId);
-
+        log.info("Добавление нового устройства с id={}, в хаб: {}.", id, hubId);
         sensorRepository.save(SensorMapper.toSensor(hubId, id));
+        log.info("Новое устройство добавлено.");
     }
 
+    @Transactional
     private void handleDeviceRemoved(String hubId, String id) {
-        log.info("Удаление устройства с id={}, у хаба: {}", id, hubId);
+        log.info("Удаление устройства с id={}, из хаба: {}.", id, hubId);
         sensorRepository.deleteById(id);
+        log.info("Устройство удалено.");
     }
 
+    @Transactional
     private void handleScenarioAdded(String hubId, ScenarioAddedEventAvro scenarioAdded) {
         log.info("Добавление нового сценария: {}", scenarioAdded.getName());
 
@@ -86,7 +104,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
                 log.error("Ошибка при сохранении условия: {}", e.getMessage());
             }
         });
-
+        log.info("Условие сохранено.");
 
         scenarioAdded.getActions().forEach(actionAvro -> {
             String sensorId = actionAvro.getSensorId();
@@ -99,6 +117,8 @@ public class AnalyzerServiceImpl implements AnalyzerService {
                 log.error("Ошибка при сохранении действия: {}", e.getMessage());
             }
         });
+        log.info("Действие сохранено.");
+        log.info("Новый сценарий добавлен.");
     }
 
     private ScenarioConditionId createScenarioConditionId(long scenarioId, String sensorId, long conditionId) {
@@ -117,8 +137,10 @@ public class AnalyzerServiceImpl implements AnalyzerService {
                 .build();
     }
 
-    private void handleScenarioRemoved(String name) {
-        log.info("Удаление сценария: {}", name);
-        scenarioRepository.deleteByName(name);
+    @Transactional
+    private void handleScenarioRemoved(String hubId, String name) {
+        log.info("Удаление сценария '{}' из хаба '{}'", name, hubId);
+        scenarioRepository.findByHubIdAndName(hubId, name).ifPresent(scenarioRepository::delete);
+        log.info("Сценарий '{}' для хаба '{}' удалён.", name, hubId);
     }
 }

@@ -18,16 +18,13 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "actions")
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @Builder
+@NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Action {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

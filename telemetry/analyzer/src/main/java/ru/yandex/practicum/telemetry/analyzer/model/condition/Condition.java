@@ -18,16 +18,13 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "conditions")
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @Builder
+@NoArgsConstructor @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Condition {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
