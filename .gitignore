@@ -5,6 +5,8 @@
 *.iml
 *.ipr
 
+.gigaide/
+
 ### Java ###
 # Compiled class file
 *.class
