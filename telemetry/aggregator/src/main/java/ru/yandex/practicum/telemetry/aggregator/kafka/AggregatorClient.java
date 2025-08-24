@@ -5,7 +5,7 @@ import org.apache.kafka.clients.producer.Producer;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
-public interface SnapshotClient {
+public interface AggregatorClient {
 
     Consumer<Void, SensorEventAvro> getConsumer();
 

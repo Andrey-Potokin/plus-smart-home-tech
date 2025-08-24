@@ -1,4 +1,4 @@
-package ru.yandex.practicum.telemetry.collector.service;
+package ru.yandex.practicum.telemetry.collector;
 
 import com.google.protobuf.Empty;
 import io.grpc.Status;
@@ -15,6 +15,8 @@ import org.springframework.kafka.support.SendResult;
 import ru.yandex.practicum.grpc.telemetry.collector.CollectorControllerGrpc;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.telemetry.collector.mapper.HubMapper;
 import ru.yandex.practicum.telemetry.collector.mapper.SensorMapper;
 
@@ -32,12 +34,12 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
     @Override
     public void collectSensorEvent(SensorEventProto sensorEvent, StreamObserver<Empty> responseObserver) {
         try {
-            log.info("Отправка события {} с id={} в Kafka", sensorEvent,
-                    sensorEvent.getId());
+            log.info("В Collector от Hub-router поступило сообщение от датчика: {}", sensorEvent);
 
-            producer.send(TELEMETRY_SENSORS_KAFKA_TOPIC, SensorMapper.toAvro(sensorEvent))
+            SensorEventAvro avro = SensorMapper.toAvro(sensorEvent);
+            producer.send(TELEMETRY_SENSORS_KAFKA_TOPIC, avro)
                     .whenComplete((result, exception) ->
-                            handleSendResult(result, exception, sensorEvent));
+                            handleSendResult(result, exception, avro));
 
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
@@ -53,11 +55,12 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
     @Override
     public void collectHubEvent(HubEventProto hubEvent, StreamObserver<Empty> responseObserver) {
         try {
-            log.info("Отправка события {} в Kafka", hubEvent);
+            log.info("В Collector от Hub_router поступило сообщение для хаба: {}", hubEvent);
 
-            producer.send(TELEMETRY_HUBS_KAFKA_TOPIC, HubMapper.toAvro(hubEvent))
+            HubEventAvro avro = HubMapper.toAvro(hubEvent);
+            producer.send(TELEMETRY_HUBS_KAFKA_TOPIC, avro)
                     .whenComplete((result, exception) ->
-                            handleSendResult(result, exception, hubEvent));
+                            handleSendResult(result, exception, avro));
 
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
@@ -72,7 +75,7 @@ public class CollectorService extends CollectorControllerGrpc.CollectorControlle
 
     private <T> void handleSendResult(SendResult<Void, SpecificRecordBase> result, Throwable exception, T event) {
         if (exception == null) {
-            log.info("Событие {} успешно отправлено в Kafka, смещение: {}",
+            log.info("Сообщение {} успешно отправлено в Kafka, смещение: {}",
                     event.getClass().getSimpleName(), result.getRecordMetadata().offset());
         } else {
             log.error("Не удалось отправить событие {}: {}",

@@ -36,61 +36,51 @@ protocol HubEventProtocol {
 
 	// Запись события добавления устройства
 	record DeviceAddedEventAvro {
-		string id;
-		// уникальный идентификатор устройства
-		DeviceTypeAvro type;// тип устройства
+		string id;           // уникальный идентификатор устройства
+		DeviceTypeAvro type; // тип устройства
 	}
 
 	// Запись события удаления устройства
 	record DeviceRemovedEventAvro {
-		string id;// уникальный идентификатор устройства
+		string id; // уникальный идентификатор устройства
 	}
 
 	// Запись условий активации сценария
 	record ScenarioConditionAvro {
-		string sensor_id;
-		// идентификатор устройства
-		ConditionTypeAvro type;
-		// тип условия
-		ConditionOperationAvro operation;
-		// операция, применяемая к условию
-		union{null, int, boolean} value;// значение для сравнения в условиях (может быть null)
+		string sensor_id;                 // идентификатор устройства
+		ConditionTypeAvro type;           // тип условия
+		ConditionOperationAvro operation; // операция, применяемая к условию
+		union{null, int, boolean} value;  // значение для сравнения в условиях (может быть null)
 	}
 
 	// Запись действий, выполняемых устройством в рамках сценария
 	record DeviceActionAvro {
-		string sensor_id;
-		// идентификатор устройства
-		ActionTypeAvro type;
-		// тип действия
-		int value;// значение, устанавливаемое при выполнении действия (если применимо)
+		string sensor_id;    // идентификатор устройства
+		ActionTypeAvro type; // тип действия
+		int value;           // значение, устанавливаемое при выполнении действия (если применимо)
 	}
 
 	// Запись события добавления сценария
 	record ScenarioAddedEventAvro {
-		string name;
-		// уникальное название сценария
-		array<ScenarioConditionAvro> conditions;
-		// набор условий активации сценария
-		array<DeviceActionAvro> actions;// набор действий, выполняемых при активации сценария
+		string name;                             // уникальное название сценария
+		array<ScenarioConditionAvro> conditions; // набор условий активации сценария
+		array<DeviceActionAvro> actions;         // набор действий, выполняемых при активации сценария
 	}
 
 	// Запись события удаления сценария
 	record ScenarioRemovedEventAvro {
-		string name;// название сценария, уникальное в рамках хаба
+		string name; // название сценария, уникальное в рамках хаба
 	}
 
 	// Запись события, происходящего в хабе
 	record HubEventAvro {
-		string hub_id;
-		// идентификатор хаба
-		timestamp_ms timestamp;
-		// метка времени события (timestamp_ms)
+		string hub_id;          // идентификатор хаба
+		timestamp_ms timestamp; // метка времени события (timestamp_ms)
 		union{
 			DeviceAddedEventAvro,
 			DeviceRemovedEventAvro,
 			ScenarioAddedEventAvro,
 			ScenarioRemovedEventAvro
-		} payload;// поле, содержащее одно из возможных событий
+		} payload;              // поле, содержащее одно из возможных событий
 	}
 }

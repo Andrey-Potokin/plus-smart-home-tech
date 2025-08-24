@@ -18,11 +18,11 @@ import java.util.Properties;
 
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class SnapshotClientConfiguration {
+public class AggregatorClientConfiguration {
 
     @Bean
-    SnapshotClient getClient() {
-        return new SnapshotClient() {
+    AggregatorClient getClient() {
+        return new AggregatorClient() {
 
             Consumer<Void, SensorEventAvro> consumer;
             Producer<Void, SensorsSnapshotAvro> producer;

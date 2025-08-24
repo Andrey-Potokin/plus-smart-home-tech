@@ -12,8 +12,8 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.telemetry.aggregator.kafka.SnapshotClient;
-import ru.yandex.practicum.telemetry.aggregator.service.AggregatorService;
+import ru.yandex.practicum.telemetry.aggregator.kafka.AggregatorClient;
+import ru.yandex.practicum.telemetry.aggregator.service.AggregatorServiceImpl;
 
 import java.time.Duration;
 import java.util.List;
@@ -25,15 +25,15 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AggregationStarter {
 
-    SnapshotClient snapshotClient;
-    AggregatorService service;
+    AggregatorClient client;
+    AggregatorServiceImpl service;
 
     private static final String TELEMETRY_SENSORS_KAFKA_TOPIC = "telemetry.sensors.v1";
     private static final String TELEMETRY_SNAPSHOT_KAFKA_TOPIC = "telemetry.snapshots.v1";
 
     public void start() {
-        Consumer<Void, SensorEventAvro> consumer = snapshotClient.getConsumer();
-        Producer<Void, SensorsSnapshotAvro> producer = snapshotClient.getProducer();
+        Consumer<Void, SensorEventAvro> consumer = client.getConsumer();
+        Producer<Void, SensorsSnapshotAvro> producer = client.getProducer();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             consumer.wakeup();
@@ -74,7 +74,7 @@ public class AggregationStarter {
         } catch (Exception e) {
             log.error("Ошибка в AggregationStarter: {}", e.getMessage());
         } finally {
-            snapshotClient.stop();
+            client.stop();
         }
     }
 }
