@@ -164,11 +164,11 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         return 0;
     }
 
-    private boolean evaluate(ConditionOperation op, int actual, int target) {
-        return switch (op) {
-            case EQUALS -> actual == target;
-            case GREATER_THAN -> actual > target;
-            case LOWER_THAN -> actual < target;
+    private boolean evaluate(ConditionOperation conditionOperation, int actual, int value) {
+        return switch (conditionOperation) {
+            case EQUALS -> actual == value;
+            case GREATER_THAN -> actual > value;
+            case LOWER_THAN -> actual < value;
         };
     }
 
