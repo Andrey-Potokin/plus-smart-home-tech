@@ -1,11 +1,13 @@
 package ru.yandex.practicum.telemetry.analyzer.kafka;
 
 import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
@@ -14,6 +16,8 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import java.util.Properties;
 
 @Configuration
+@RequiredArgsConstructor
+@ConfigurationProperties(prefix = "spring.kafka")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AnalyzerClientConfiguration {
 

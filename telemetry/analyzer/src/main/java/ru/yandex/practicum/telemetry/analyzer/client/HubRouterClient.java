@@ -4,6 +4,7 @@ import com.google.protobuf.Timestamp;
 import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
@@ -15,6 +16,7 @@ import java.time.Instant;
 
 @Slf4j
 @Component
+@ConfigurationProperties("grpc.client")
 public class HubRouterClient {
 
     @GrpcClient("hub-router")
