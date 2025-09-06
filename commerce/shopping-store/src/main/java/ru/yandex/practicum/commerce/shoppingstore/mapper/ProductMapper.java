@@ -13,7 +13,7 @@ public class ProductMapper {
                 .imageSrc(dto.getImageSrc())
                 .quantityState(dto.getQuantityState())
                 .productState(dto.getProductState())
-                .productCategory(dto.getProductCategory())
+                .category(dto.getProductCategory())
                 .price(dto.getPrice())
                 .build();
     }
@@ -25,7 +25,7 @@ public class ProductMapper {
                 .imageSrc(product.getImageSrc())
                 .quantityState(product.getQuantityState())
                 .productState(product.getProductState())
-                .productCategory(product.getProductCategory())
+                .productCategory(product.getCategory())
                 .price(product.getPrice())
                 .build();
     }

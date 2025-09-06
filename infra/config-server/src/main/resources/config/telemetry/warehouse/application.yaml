@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6541/warehouse
-    username: warehouse
-    password: warehouse
+    url: jdbc:postgresql://localhost:6541/smart-home-tech
+    username: dbuser
+    password: 12345
 
   sql:
     init:

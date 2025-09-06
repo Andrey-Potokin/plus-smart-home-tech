@@ -49,7 +49,7 @@ public class Product {
     ProductState productState;
 
     @Enumerated(EnumType.STRING)
-    ProductCategory productCategory;
+    ProductCategory category;
 
     @NotNull
     @Min(1)

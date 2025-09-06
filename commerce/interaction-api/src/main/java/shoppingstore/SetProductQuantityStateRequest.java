@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor @AllArgsConstructor
@@ -16,7 +18,7 @@ import lombok.experimental.FieldDefaults;
 public class SetProductQuantityStateRequest {
 
     @NotBlank
-    String productId;
+    UUID productId;
 
     @NotNull
     QuantityState quantityState;

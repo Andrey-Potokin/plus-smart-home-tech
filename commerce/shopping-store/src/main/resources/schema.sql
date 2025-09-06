@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS products (
     image_src VARCHAR(255) NOT NULL,
     quantity_state VARCHAR(255) NOT NULL,
     product_state VARCHAR(255) NOT NULL,
-    product_category VARCHAR(255),
+    category VARCHAR(255),
     price DOUBLE PRECISION NOT NULL CHECK (price >= 1)
 );
