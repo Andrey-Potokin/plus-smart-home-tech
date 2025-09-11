@@ -47,29 +47,23 @@ public class ErrorHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(SpecifiedProductAlreadyInWarehouseException.class)
-    public ResponseEntity<ApiError> handleSpecifiedProductAlreadyInWarehouseException(Exception ex) {
-        log.warn("Выброшено исключение SpecifiedProductAlreadyInWarehouseException");
+    @ExceptionHandler({
+            SpecifiedProductAlreadyInWarehouseException.class,
+            NoSpecifiedProductInWarehouseException.class,
+            BadRequestException.class
+    })
+    public ResponseEntity<ApiError> handleBadRequestExceptions(Exception ex) {
+        log.warn("Выброшено исключение: {}", ex.getClass().getSimpleName());
 
-        ApiError response = createResponse(ex, "Ошибка, товар с таким описанием уже зарегистрирован на складе");
+        String defaultMessage = "Некорректный запрос.";
+        String customMessage = switch (ex) {
+            case SpecifiedProductAlreadyInWarehouseException e ->
+                    "Ошибка, товар с таким описанием уже зарегистрирован на складе";
+            case NoSpecifiedProductInWarehouseException e -> "Нет информации о товаре на складе";
+            default -> defaultMessage;
+        };
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(NoSpecifiedProductInWarehouseException.class)
-    public ResponseEntity<ApiError> handleNoSpecifiedProductInWarehouseException(Exception ex) {
-        log.warn("Выброшено исключение NoSpecifiedProductInWarehouseException");
-
-        ApiError response = createResponse(ex, "Нет информации о товаре на складе");
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiError> handleBadRequestException(Exception ex) {
-        log.warn("Выброшено исключение BadRequestException");
-
-        ApiError response = createResponse(ex, "Некорректный запрос.");
+        ApiError response = createResponse(ex, customMessage);
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }

@@ -30,6 +30,7 @@ import java.util.UUID;
 @Transactional
 @Slf4j
 public class CartServiceImpl implements CartService {
+
     CartRepository cartRepository;
     CartMapper cartMapper;
     WarehouseClient warehouseClient;
@@ -38,11 +39,11 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public ShoppingCartDto getCart(String username) {
         checkUsername(username);
-        log.debug("Поиск корзины для пользователя: {} ", username);
+        log.info("Поиск корзины для пользователя: {} ", username);
 
         Cart cart = cartRepository.findByUsername(username)
                 .orElseGet(() -> {
-                    log.debug("Корзина для пользователя {} не найдена. Создаю новую.", username);
+                    log.info("Корзина для пользователя {} не найдена. Создаю новую.", username);
                     return Cart.builder()
                             .username(username)
                             .status(CartState.ACTIVE)
@@ -55,17 +56,18 @@ public class CartServiceImpl implements CartService {
     @Override
     public ShoppingCartDto addProduct(String username, Map<UUID, Long> products) {
         checkUsername(username);
-        log.info("Запрос на добавление товаров в корзину пользователя: {}. Количество товаров: {}", username, products.size());
+        log.info("Запрос на добавление товаров в корзину пользователя: {}. Количество товаров: {}", username,
+                products.size());
 
         if (products.isEmpty()) {
             throw new BadRequestException("Список продуктов для добавления не может быть пустым");
         }
 
-        log.debug("Поиск корзины для пользователя: {} ", username);
+        log.info("Поиск корзины для пользователя: {} ", username);
 
         Cart cart = cartRepository.findByUsername(username)
                 .orElseGet(() -> {
-                    log.debug("Корзина для пользователя {} не найдена. Создаю новую.", username);
+                    log.info("Корзина для пользователя {} не найдена. Создаю новую.", username);
                     return Cart.builder()
                             .username(username)
                             .status(CartState.ACTIVE)
@@ -78,9 +80,12 @@ public class CartServiceImpl implements CartService {
         updateCartProducts(cart, products);
 
         try {
-            log.info("проверяю наличие на складе: id = {}, products = {}", cart.getShoppingCartId(), cart.getProducts());
+            log.info("проверяю наличие на складе: id = {}, products = {}", cart.getShoppingCartId(),
+                    cart.getProducts());
 
-            BookedProductsDto bookedProductsDto = warehouseClient.checkProductQuantityInWarehouse(cartMapper.toDto(cart));
+            BookedProductsDto bookedProductsDto = warehouseClient.checkProductQuantityInWarehouse(
+                    cartMapper.toDto(cart)
+            );
 
             log.info("Проверено наличие на складе: {}", bookedProductsDto);
 
@@ -89,11 +94,9 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Склад не доступен", e);
         }
 
-        cart = cartRepository.save(cart);
-
         ShoppingCartDto result = cartMapper.toDto(cart);
 
-        log.debug("Товары добавлены в корзину пользователя: {}. Итоговое количество товаров: {}",
+        log.info("Товары добавлены в корзину пользователя: {}. Итоговое количество товаров: {}",
                 username, result.getProducts().size());
 
         return result;
@@ -105,7 +108,8 @@ public class CartServiceImpl implements CartService {
         log.info("Запрос на деактивацию корзины для пользователя: {}", username);
 
         Cart cart = cartRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException(String.format("Корзина для пользователя %s не найдена", username)));
+                .orElseThrow(() -> new NotFoundException(String.format("Корзина для пользователя %s не найдена",
+                        username)));
 
         if (cart.getStatus() != CartState.DEACTIVATE) {
             cart.setStatus(CartState.DEACTIVATE);

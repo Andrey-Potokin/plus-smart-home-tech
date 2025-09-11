@@ -26,6 +26,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Transactional
 public class ProductServiceImpl implements ProductService {
+
     StoreRepository storeRepository;
     ProductMapper productMapper;
 
@@ -71,7 +72,6 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = validateProductExist(productId);
         product.setQuantityState(quantityState);
-        storeRepository.save(product);
         return true;
     }
 
