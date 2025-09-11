@@ -1,11 +1,12 @@
-DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS product CASCADE;
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS product (
     product_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     product_name VARCHAR(255) NOT NULL,
-    image_src VARCHAR(255) NOT NULL,
-    quantity_state VARCHAR(255) NOT NULL,
-    product_state VARCHAR(255) NOT NULL,
-    category VARCHAR(255),
-    price DOUBLE PRECISION NOT NULL CHECK (price >= 1)
+    description VARCHAR(255) NOT NULL,
+    image_src VARCHAR(255),
+    quantity_state VARCHAR(20) NOT NULL,
+    product_state VARCHAR(20) NOT NULL,
+    product_category VARCHAR(20) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL CHECK (price >= 1)
 );
