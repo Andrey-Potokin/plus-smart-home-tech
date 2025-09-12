@@ -13,6 +13,13 @@ spring:
         enabled: true
         serviceId: config-server
 
+grpc:
+  server:
+    port: 59092
+  client:
+    hub-router:
+      address: 'discovery:///hub-router'
+
 eureka:
   client:
     serviceUrl:
